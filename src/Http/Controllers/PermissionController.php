@@ -92,7 +92,15 @@ class PermissionController extends Controller
     {
         foreach ($folders as $folder => $permission) {
             if (! ($this->getPermission($folder) >= $permission)) {
-                $this->addFileAndSetErrors($folder, $permission, false);
+                try {
+                    chmod($folder, octdec($permission));
+                }catch (\Exception $e) {
+                    // Do nothing
+                }
+            }
+
+            if (! ($this->getPermission($folder) >= $permission)) {
+                $this->addFileAndSetErrors($folder, $permission);
             } else {
                 $this->addFile($folder, $permission, true);
             }
@@ -124,9 +132,9 @@ class PermissionController extends Controller
     /**
      * Add the file and set the errors.
      */
-    private function addFileAndSetErrors($folder, $permission, $isSet): void
+    private function addFileAndSetErrors($folder, $permission): void
     {
-        $this->addFile($folder, $permission, $isSet);
+        $this->addFile($folder, $permission, false);
 
         $this->results['errors'] = true;
     }
